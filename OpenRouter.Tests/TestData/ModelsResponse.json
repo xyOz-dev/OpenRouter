@@ -1,0 +1,44 @@
+{
+  "data": [
+    {
+      "id": "meta-llama/llama-3.1-8b-instruct:free",
+      "name": "Meta Llama 3.1 8B Instruct (free)",
+      "description": "Meta's latest Llama model with improved instruction following",
+      "context_length": 131072,
+      "architecture": {
+        "modality": "text",
+        "tokenizer": "Llama3",
+        "instruct_type": "llama3"
+      },
+      "pricing": {
+        "prompt": "0",
+        "completion": "0"
+      },
+      "top_provider": {
+        "max_completion_tokens": 8192,
+        "is_moderated": true
+      },
+      "per_request_limits": null
+    },
+    {
+      "id": "openai/gpt-4o",
+      "name": "OpenAI GPT-4o",
+      "description": "GPT-4o: multimodal flagship model that's cheaper and faster than GPT-4 Turbo",
+      "context_length": 128000,
+      "architecture": {
+        "modality": "text+image",
+        "tokenizer": "cl100k_base",
+        "instruct_type": null
+      },
+      "pricing": {
+        "prompt": "0.000005",
+        "completion": "0.000015"
+      },
+      "top_provider": {
+        "max_completion_tokens": 4096,
+        "is_moderated": true
+      },
+      "per_request_limits": null
+    }
+  ]
+}

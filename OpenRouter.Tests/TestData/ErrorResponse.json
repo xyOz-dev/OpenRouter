@@ -1,0 +1,11 @@
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "insufficient_credits",
+    "message": "Your account does not have enough credits to complete this request. Please top up your account at https://openrouter.ai/credits",
+    "metadata": {
+      "required_credits": 0.005,
+      "available_credits": 0.001
+    }
+  }
+}
