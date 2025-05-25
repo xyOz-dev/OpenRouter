@@ -1,0 +1,39 @@
+Custom License for OpenRouter .NET Library
+
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to use,
+copy, modify, merge, and distribute the Software, subject to the following
+conditions:
+
+1. The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+2. The Software may be used for personal, educational, and commercial purposes.
+
+3. The Software, or any substantial portion thereof, may NOT be sold, sublicensed,
+   or offered as a paid product or service, whether standalone or as part of a
+   larger product or service.
+
+4. The Software may be included in commercial applications, provided that:
+   a) The Software itself is not the primary value proposition of the commercial
+      application
+   b) The Software is not being resold or monetized directly
+   c) Proper attribution is given to the OpenRouter .NET Library
+
+5. Redistributions of the Software must retain this license and all restrictions.
+
+6. Modified versions of the Software must be clearly marked as such and must not
+   be misrepresented as being the original Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+This license aims to encourage the free use and improvement of the Software while
+preventing its direct commercialization. For questions about commercial use cases,
+please contact the project maintainers.

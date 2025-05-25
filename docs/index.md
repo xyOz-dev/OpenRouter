@@ -27,10 +27,16 @@ OpenRouter .NET is a modern, async-first library that simplifies integration wit
 
 ## Installation
 
-Install the OpenRouter .NET library from NuGet:
+Clone the repository and reference the project in your solution:
 
 ```bash
-dotnet add package OpenRouter
+git clone https://github.com/OpenRouter/openrouter-sdk-csharp.git
+```
+
+Or add the project reference to your .csproj file:
+
+```xml
+<ProjectReference Include="path/to/OpenRouter/OpenRouter.csproj" />
 ```
 
 Or via Package Manager Console:

@@ -5,36 +5,31 @@ This guide will walk you through installing, configuring, and making your first 
 ## Prerequisites
 
 - **.NET 8.0 or later** - The library targets .NET 8.0+ for optimal performance and modern language features
-- **NuGet Package Manager** - For package installation (included with Visual Studio and .NET CLI)
 - **OpenRouter API Key** - [Sign up at OpenRouter](https://openrouter.ai) to get your API key
 
 ## Installation
 
-### Using .NET CLI
+### Clone the Repository
 
 ```bash
-dotnet add package OpenRouter
+git clone https://github.com/OpenRouter/openrouter-sdk-csharp.git
 ```
 
-### Using Package Manager Console (Visual Studio)
+### Add Project Reference
 
-```powershell
-Install-Package OpenRouter
-```
-
-### Using Visual Studio Package Manager UI
-
-1. Right-click on your project in Solution Explorer
-2. Select "Manage NuGet Packages..."
-3. Click on the "Browse" tab
-4. Search for "OpenRouter"
-5. Click "Install" next to the OpenRouter package
-
-### Package Reference (for .csproj)
+Add the project reference to your .csproj file:
 
 ```xml
-<PackageReference Include="OpenRouter" Version="1.0.0" />
+<ProjectReference Include="path/to/OpenRouter/OpenRouter.csproj" />
 ```
+
+### Using Visual Studio
+
+1. Right-click on your solution in Solution Explorer
+2. Select "Add" > "Existing Project..."
+3. Navigate to and select the OpenRouter.csproj file
+4. Right-click on your project and select "Add" > "Project Reference..."
+5. Check the OpenRouter project and click "OK"
 
 ## Basic Setup
 

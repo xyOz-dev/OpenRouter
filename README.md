@@ -1,8 +1,6 @@
 # OpenRouter .NET Library
 
-[![NuGet Version](https://img.shields.io/nuget/v/OpenRouter.NET)](https://www.nuget.org/packages/OpenRouter.NET)
-[![Build Status](https://img.shields.io/github/workflow/status/OpenRouter/openrouter-sdk-csharp/CI)](https://github.com/OpenRouter/openrouter-sdk-csharp/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Custom](https://img.shields.io/badge/License-Custom-blue.svg)](LICENSE)
 
 A comprehensive .NET client library for the OpenRouter API - the unified gateway to access multiple AI models including OpenAI, Anthropic, Meta, Google, and more.
 
@@ -40,8 +38,16 @@ A comprehensive .NET client library for the OpenRouter API - the unified gateway
 
 ### Installation
 
+Clone the repository and reference the project in your solution:
+
 ```bash
-dotnet add package OpenRouter.NET
+git clone https://github.com/OpenRouter/openrouter-sdk-csharp.git
+```
+
+Or add the project reference to your .csproj file:
+
+```xml
+<ProjectReference Include="path/to/OpenRouter/OpenRouter.csproj" />
 ```
 
 ### Basic Usage
@@ -164,7 +170,7 @@ dotnet test
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under a custom license that allows free use but prohibits commercial sale - see the [LICENSE](LICENSE) file for details.
 
 ## 🤝 Contributing
 
