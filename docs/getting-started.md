@@ -12,7 +12,7 @@ This guide will walk you through installing, configuring, and making your first 
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/OpenRouter/openrouter-sdk-csharp.git
+git clone https://github.com/xyOz-dev/OpenRouter.git
 ```
 
 ### Add Project Reference
