@@ -41,7 +41,7 @@ A comprehensive .NET client library for the OpenRouter API - the unified gateway
 Clone the repository and reference the project in your solution:
 
 ```bash
-git clone https://github.com/OpenRouter/openrouter-sdk-csharp.git
+git clone https://github.com/xyOz-dev/OpenRouter.git
 ```
 
 Or add the project reference to your .csproj file:
@@ -161,8 +161,8 @@ dotnet test OpenRouter.Tests --filter Category=Integration
 ## 🛠️ Development
 
 ```bash
-git clone https://github.com/OpenRouter/openrouter-sdk-csharp.git
-cd openrouter-sdk-csharp
+git clone https://github.com/xyOz-dev/OpenRouter.git
+cd OpenRouter
 dotnet restore
 dotnet build
 dotnet test
@@ -180,15 +180,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 - 📚 **[Complete Documentation](docs/index.md)** - Start here for comprehensive guides
 - 🌐 **[OpenRouter API Docs](https://openrouter.ai/docs)** - Official API documentation
-- 🐛 **[Bug Reports](https://github.com/OpenRouter/openrouter-sdk-csharp/issues)** - GitHub Issues
-- 💬 **[Discord Community](https://discord.gg/openrouter)** - Join the conversation
-- 📧 **[Support Email](mailto:support@openrouter.ai)** - Direct support
-
-## 🔗 Related Projects
-
-- [OpenRouter Python SDK](https://github.com/OpenRouter/openrouter-python)
-- [OpenRouter JavaScript SDK](https://github.com/OpenRouter/openrouter-js)
-- [OpenRouter API Documentation](https://openrouter.ai/docs/api)
+- 🐛 **[Bug Reports](https://github.com/xyOz-dev/OpenRouter/issues)** - GitHub Issues
 
 ---
 
