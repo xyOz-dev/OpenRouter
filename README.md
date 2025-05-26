@@ -41,7 +41,7 @@ A comprehensive .NET client library for the OpenRouter API - the unified gateway
 Clone the repository and reference the project in your solution:
 
 ```bash
-git clone https://github.com/xyOz-dev/OpenRouter.git
+git clone https://github.com/xyOz-dev/LogiQ.OpenRouter.git
 ```
 
 Or add the project reference to your .csproj file:
@@ -161,7 +161,7 @@ dotnet test OpenRouter.Tests --filter Category=Integration
 ## 🛠️ Development
 
 ```bash
-git clone https://github.com/xyOz-dev/OpenRouter.git
+git clone https://github.com/xyOz-dev/LogiQ.OpenRouter.git
 cd OpenRouter
 dotnet restore
 dotnet build
@@ -180,7 +180,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 - 📚 **[Complete Documentation](docs/index.md)** - Start here for comprehensive guides
 - 🌐 **[OpenRouter API Docs](https://openrouter.ai/docs)** - Official API documentation
-- 🐛 **[Bug Reports](https://github.com/xyOz-dev/OpenRouter/issues)** - GitHub Issues
+- 🐛 **[Bug Reports](https://github.com/xyOz-dev/LogiQ.OpenRouter/issues)** - GitHub Issues
 
 ---
 

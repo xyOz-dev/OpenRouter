@@ -30,7 +30,7 @@ OpenRouter .NET is a modern, async-first library that simplifies integration wit
 Clone the repository and reference the project in your solution:
 
 ```bash
-git clone https://github.com/xyOz-dev/OpenRouter.git
+git clone https://github.com/xyOz-dev/LogiQ.OpenRouter.git
 ```
 
 Or add the project reference to your .csproj file:
@@ -74,8 +74,8 @@ Console.WriteLine(response.FirstChoiceContent);
 
 ## Support and Community
 
-- **GitHub Repository**: [OpenRouter.NET](https://github.com/xyOz-dev/OpenRouter)
-- **Issues and Bug Reports**: [GitHub Issues](https://github.com/xyOz-dev/OpenRouter/issues)
+- **GitHub Repository**: [OpenRouter.NET](https://github.com/xyOz-dev/LogiQ.OpenRouter)
+- **Issues and Bug Reports**: [GitHub Issues](https://github.com/xyOz-dev/LogiQ.OpenRouter/issues)
 
 ---
 
