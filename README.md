@@ -1,187 +1,54 @@
-# OpenRouter .NET Library
+# OpenRouter.NET SDK
 
-[![License: Custom](https://img.shields.io/badge/License-Custom-blue.svg)](LICENSE)
+Welcome to my personal .NET SDK for OpenRouter! This SDK provides a convenient way to integrate your .NET applications with the OpenRouter API, allowing you to leverage a diverse range of AI models for various tasks.
 
-A comprehensive .NET client library for the OpenRouter API - the unified gateway to access multiple AI models including OpenAI, Anthropic, Meta, Google, and more.
+## Overview
 
-## 📚 Documentation
+OpenRouter is a platform that provides access to a multitude of Large Language Models (LLMs) and other AI models through a unified API. This SDK simplifies the process of making requests to the OpenRouter API, handling authentication, and processing responses.
 
-**Complete documentation is now available in the [`docs/`](docs/) directory:**
+## Features
 
-- **[📋 Getting Started Guide](docs/getting-started.md)** - Installation, setup, and first steps
-- **[🔐 Authentication](docs/authentication.md)** - API keys, tokens, and OAuth setup
-- **[🏗️ Dependency Injection](docs/dependency-injection.md)** - ASP.NET Core integration
-- **[💬 Chat Completions](docs/features/chat-completions.md)** - Core chat functionality
-- **[📊 Model Management](docs/features/models.md)** - Discovering and querying models
-- **[🔄 Streaming Support](docs/features/streaming.md)** - Real-time streaming responses
-- **[🛠️ Advanced Features](docs/advanced/)** - Tools, structured outputs, and more
-- **[📖 API Reference](docs/api-reference/)** - Complete method documentation
-- **[💡 Examples](docs/examples/)** - Practical usage examples
+*   **Easy-to-use Client**: Intuitive `OpenRouterClient` for interacting with the API.
+*   **Comprehensive Model Support**: Access any model available on OpenRouter.
+*   **Chat Completions**: Both blocking and streaming responses for chat interactions.
+*   **Model Management**: List available models, get model details, and more.
+*   **Built-in Retries**: Resilient HTTP client with Polly for transient error handling.
+*   **Dependency Injection**: Extension methods for easy integration with `Microsoft.Extensions.DependencyInjection`.
+*   **Strongly Typed**: Clear request and response models.
 
-🚀 **Start here:** [`docs/index.md`](docs/index.md)
+## Getting Started
 
-## ✨ Key Features
+To start using the SDK, check out the [Getting Started Guide](getting-started.md). This guide covers installation and basic configuration.
 
-- **🚀 Easy Integration** - Simple, intuitive API with fluent builder pattern ([`IChatRequestBuilder`](OpenRouter/Services/Chat/IChatRequestBuilder.cs:1))
-- **🔄 Streaming Support** - Real-time response streaming with async enumerable
-- **🔐 Multiple Authentication** - API Key, Bearer Token, and OAuth PKCE flows
-- **🛠️ Advanced Features** - Tools, structured outputs, web search capabilities
-- **📊 Model Management** - List, filter, and get detailed model information ([`IModelsService`](OpenRouter/Core/IOpenRouterClient.cs:12))
-- **💰 Cost Management** - Credit tracking and usage monitoring ([`ICreditsService`](OpenRouter/Core/IOpenRouterClient.cs:13))
-- **🔧 Provider Routing** - Automatic fallbacks and intelligent load balancing
-- **🖼️ Multimodal Support** - Text, images, and other media types
-- **🏗️ Dependency Injection** - Built-in DI container support ([`ServiceCollectionExtensions`](OpenRouter/Extensions/ServiceCollectionExtensions.cs:16))
-- **⚡ Async/Await** - Full async support with cancellation tokens
-- **🛡️ Error Handling** - Comprehensive exception handling ([`OpenRouterException`](OpenRouter/Exceptions/OpenRouterException.cs:3), [`OpenRouterApiException`](OpenRouter/Exceptions/OpenRouterApiException.cs:3))
+## Core Concepts
 
-## ⚡ Quick Start
+Understand the fundamental components of the SDK:
+*   [OpenRouterClient and Options](core-concepts/client-and-options.md)
+*   [Available Services](core-concepts/services.md)
+*   [Request and Response Models](core-concepts/data-models.md)
 
-### Installation
+## Key Functionalities
 
-Clone the repository and reference the project in your solution:
+Dive deeper into specific features:
+*   [Chat Completions](features/chat-completions.md) (including streaming and conversation management)
+*   [Managing Models](features/model-management.md) (listing, details, etc.)
+*   [Authentication](features/authentication.md)
+*   [Error Handling](features/error-handling.md)
 
-```bash
-git clone https://github.com/xyOz-dev/LogiQ.OpenRouter.git
-```
+## Examples
 
-Or add the project reference to your .csproj file:
+For practical examples of how to use the SDK, please refer to the [`OpenRouter.Examples`](../OpenRouter.Examples/) project in this repository. It demonstrates various use cases, including:
+*   Basic Chat
+*   Streaming Chat
+*   Conversation Management
+*   Listing and Filtering Models
+*   Retrieving Model Details
+*   Using Custom Parameters
 
-```xml
-<ProjectReference Include="path/to/OpenRouter/OpenRouter.csproj" />
-```
+## Advanced Topics
+*   [Dependency Injection Setup](advanced/dependency-injection.md)
+*   [HTTP Client Customization](advanced/http-client.md)
 
-### Basic Usage
+## Contributing
 
-```csharp
-using OpenRouter.Core;
-
-// Initialize client
-var client = new OpenRouterClient("your-api-key-here");
-
-// Simple chat completion
-var response = await client.Chat
-    .CreateRequest()
-    .WithModel("meta-llama/llama-3.1-8b-instruct:free")
-    .AddUserMessage("Hello, how are you?")
-    .SendAsync();
-
-Console.WriteLine(response.GetFirstChoiceMessageContent());
-```
-
-### Dependency Injection
-
-```csharp
-using Microsoft.Extensions.DependencyInjection;
-using OpenRouter.Extensions;
-
-services.AddOpenRouter(options =>
-{
-    options.ApiKey = "your-api-key-here";
-});
-
-var client = serviceProvider.GetRequiredService<IOpenRouterClient>();
-```
-
-## 🎯 Core Services
-
-The library is built around a central [`IOpenRouterClient`](OpenRouter/Core/IOpenRouterClient.cs:9) interface with specialized services:
-
-- **[`IChatService`](OpenRouter/Core/IOpenRouterClient.cs:11)** - Chat completions with fluent API
-- **[`IModelsService`](OpenRouter/Core/IOpenRouterClient.cs:12)** - Model discovery and querying
-- **[`ICreditsService`](OpenRouter/Core/IOpenRouterClient.cs:13)** - Credit monitoring and usage tracking
-- **[`IKeysService`](OpenRouter/Core/IOpenRouterClient.cs:14)** - API key management
-- **[`IAuthService`](OpenRouter/Core/IOpenRouterClient.cs:15)** - OAuth authentication flows
-
-## 🔧 Configuration
-
-```csharp
-services.AddOpenRouter(options =>
-{
-    options.ApiKey = "your-api-key";
-    options.BaseUrl = "https://openrouter.ai";
-    options.UserAgent = "MyApp/1.0.0";
-    options.Timeout = TimeSpan.FromSeconds(30);
-    options.MaxRetries = 3;
-});
-```
-
-For comprehensive configuration options, see [`OpenRouterOptions`](OpenRouter/Core/IOpenRouterClient.cs:21).
-
-## 🚀 Examples
-
-### Streaming Chat
-```csharp
-await foreach (var chunk in client.Chat
-    .CreateRequest()
-    .WithModel("openai/gpt-4o")
-    .AddUserMessage("Tell me a story")
-    .WithStreaming(true)
-    .SendStreamAsync())
-{
-    Console.Write(chunk.GetDeltaContent());
-}
-```
-
-### Tool Calling
-```csharp
-var response = await client.Chat
-    .CreateRequest()
-    .WithModel("openai/gpt-4o")
-    .AddUserMessage("What's the weather like?")
-    .AddTool("get_weather", "Get current weather", new
-    {
-        type = "object",
-        properties = new
-        {
-            location = new { type = "string", description = "City name" }
-        }
-    })
-    .SendAsync();
-```
-
-### Model Discovery
-```csharp
-var models = await client.Models.GetModelsAsync();
-var gptModels = models.Data.Where(m => m.Id.Contains("gpt"));
-```
-
-For more examples, visit the [`docs/examples/`](docs/examples/) directory.
-
-## 🧪 Testing
-
-```bash
-# Run unit tests
-dotnet test OpenRouter.Tests --filter Category=Unit
-
-# Run integration tests (requires API key)
-export OPENROUTER_API_KEY="your-api-key-here"
-dotnet test OpenRouter.Tests --filter Category=Integration
-```
-
-## 🛠️ Development
-
-```bash
-git clone https://github.com/xyOz-dev/LogiQ.OpenRouter.git
-cd OpenRouter
-dotnet restore
-dotnet build
-dotnet test
-```
-
-## 📄 License
-
-This project is licensed under a custom license that allows free use but prohibits commercial sale - see the [LICENSE](LICENSE) file for details.
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
-## 📞 Support
-
-- 📚 **[Complete Documentation](docs/index.md)** - Start here for comprehensive guides
-- 🌐 **[OpenRouter API Docs](https://openrouter.ai/docs)** - Official API documentation
-- 🐛 **[Bug Reports](https://github.com/xyOz-dev/LogiQ.OpenRouter/issues)** - GitHub Issues
-
----
-
-*Built with ❤️ for the .NET community*
+Contributions are welcome! Please refer to the main project `README.md` for guidelines.

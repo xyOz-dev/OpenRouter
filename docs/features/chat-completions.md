@@ -1,180 +1,233 @@
-# Chat Completions
+# Feature: Chat Completions
 
-## Introduction
+The OpenRouter.NET SDK provides robust support for chat completions, enabling rich conversational AI experiences. This includes standard (blocking) chat calls, streaming responses for real-time interaction, and tools for managing conversation history.
 
-The .NET OpenRouter library provides comprehensive chat completion capabilities, enabling developers to interact with various language models through OpenRouter's unified API. The library offers both direct API usage and a fluent builder pattern for constructing complex chat requests with ease.
+The primary service for this functionality is [`IChatService`](../../OpenRouter/Services/Chat/IChatService.cs:1), accessed via `openRouterClient.Chat`.
 
-## Basic Usage
+## Basic Chat Completion
 
-### Creating ChatCompletionRequest Manually
+A basic chat completion involves sending a request with a series of messages and receiving the model's full response once it's generated.
 
-You can create chat completion requests directly using the [`ChatCompletionRequest`](../../OpenRouter/Models/Requests/ChatCompletionRequest.cs:1) model:
+**Steps:**
+1.  Create a [`ChatCompletionRequest`](../../OpenRouter/Models/Requests/ChatCompletionRequest.cs:1).
+2.  Specify the `Model` ID.
+3.  Provide a list of [`Message`](../../OpenRouter/Models/Common/Message.cs:1) objects representing the conversation.
+4.  Call `await _chatService.CreateChatCompletionAsync(request)`.
+5.  Process the [`ChatCompletionResponse`](../../OpenRouter/Models/Responses/ChatCompletionResponse.cs:1).
+
+**Example:**
+(Adapted from [`BasicChatExample.cs`](../../OpenRouter.Examples/BasicUsage/BasicChatExample.cs:1))
 
 ```csharp
-var request = new ChatCompletionRequest
+using OpenRouter.Services.Chat;
+using OpenRouter.Models.Requests;
+using OpenRouter.Models.Common;
+using Microsoft.Extensions.Logging; // For ILogger
+
+public class ChatExample
 {
-    Model = "anthropic/claude-3-haiku",
-    Messages = new[]
+    private readonly IChatService _chatService;
+    private readonly ILogger<ChatExample> _logger;
+
+    public ChatExample(IChatService chatService, ILogger<ChatExample> logger)
     {
-        new Message { Role = "user", Content = "Hello, world!" }
+        _chatService = chatService;
+        _logger = logger;
     }
-};
+
+    public async Task RunBasicChatAsync()
+    {
+        _logger.LogInformation("--- Basic Chat Example ---");
+        var request = new ChatCompletionRequest
+        {
+            Model = "openai/gpt-3.5-turbo", // Or any preferred model
+            Messages = new List<Message>
+            {
+                new Message { Role = "system", Content = "You are a helpful assistant." },
+                new Message { Role = "user", Content = "What is the weather like in London today?" }
+            },
+            MaxTokens = 150
+        };
+
+        try
+        {
+            var response = await _chatService.CreateChatCompletionAsync(request);
+            var firstChoice = response.Choices?.FirstOrDefault();
+            if (firstChoice != null)
+            {
+                _logger.LogInformation("Model Response: {Content}", firstChoice.Message?.Content);
+                _logger.LogInformation("Finish Reason: {Reason}", firstChoice.FinishReason);
+            }
+            else
+            {
+                _logger.LogWarning("No response choices received.");
+            }
+            LogUsage(response.Usage);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during basic chat completion");
+        }
+    }
+
+    private void LogUsage(Usage? usage)
+    {
+        if (usage != null)
+        {
+            _logger.LogInformation("Usage: Prompt Tokens={Prompt}, Completion Tokens={Completion}, Total Tokens={Total}",
+                usage.PromptTokens, usage.CompletionTokens, usage.TotalTokens);
+        }
+    }
+}
 ```
 
-### Using IChatService Directly
+## Streaming Chat Completions
 
-Access the chat service through the [`IChatService`](../../OpenRouter/Core/IOpenRouterClient.cs:11) interface:
+Streaming allows you to receive the model's response in chunks as it's being generated. This is ideal for user interfaces where you want to display text progressively.
+
+**Steps:**
+1.  Create a `ChatCompletionRequest`, ensuring `Stream = true` (though the SDK's `StreamChatCompletionAsync` method typically handles setting this).
+2.  Define an `Action<ChatCompletionChunk>` to handle each incoming [`ChatCompletionChunk`](../../OpenRouter/Models/Responses/ChatCompletionChunk.cs:1).
+3.  Call `await _chatService.StreamChatCompletionAsync(request, chunkHandler)`.
+
+**Example:**
+(Adapted from [`BasicChatExample.cs`](../../OpenRouter.Examples/BasicUsage/BasicChatExample.cs:1))
 
 ```csharp
-var response = await client.Chat.CreateChatCompletionAsync(request);
-Console.WriteLine(response.Choices[0].Message.Content);
+public async Task RunStreamingChatAsync()
+{
+    _logger.LogInformation("--- Streaming Chat Example ---");
+    var request = new ChatCompletionRequest
+    {
+        Model = "mistralai/mistral-7b-instruct",
+        Messages = new List<Message>
+        {
+            new Message { Role = "user", Content = "Write a short poem about AI." }
+        },
+        MaxTokens = 100,
+        // Stream property defaults to true when using StreamChatCompletionAsync internally
+    };
+
+    var fullResponse = new System.Text.StringBuilder();
+    _logger.LogInformation("Streaming Response:");
+
+    try
+    {
+        await _chatService.StreamChatCompletionAsync(request, chunk =>
+        {
+            var content = chunk.Choices?.FirstOrDefault()?.Delta?.Content;
+            if (!string.IsNullOrEmpty(content))
+            {
+                Console.Write(content); // Write directly to console for immediate display
+                fullResponse.Append(content);
+            }
+
+            if (chunk.Choices?.FirstOrDefault()?.FinishReason != null)
+            {
+                _logger.LogInformation("\nStream finished. Finish Reason: {Reason}", chunk.Choices.First().FinishReason);
+                LogUsage(chunk.Usage); // Usage info usually comes with the last chunk
+            }
+        });
+        _logger.LogInformation("\n--- End of Stream ---");
+        _logger.LogInformation("Full assembled response: {FullResponse}", fullResponse.ToString());
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error during streaming chat completion");
+    }
+}
+```
+Note: The `Console.Write` in the chunk handler is for demonstration. In a UI application, you'd append to a display buffer.
+
+## Conversation Management
+
+Maintaining conversation history is crucial for context. The `Messages` list in `ChatCompletionRequest` serves this purpose. You typically append the user's new message and the assistant's last response to this list before making the next request.
+
+**Example:**
+(Adapted from [`BasicChatExample.cs`](../../OpenRouter.Examples/BasicUsage/BasicChatExample.cs:1))
+```csharp
+public async Task RunConversationAsync()
+{
+    _logger.LogInformation("--- Conversation Example ---");
+    var conversationHistory = new List<Message>
+    {
+        new Message { Role = "system", Content = "You are a witty and slightly sarcastic assistant." }
+    };
+
+    await ProcessUserMessage("Hello there!", conversationHistory);
+    await ProcessUserMessage("What's your name?", conversationHistory);
+    await ProcessUserMessage("Can you tell me a fun fact?", conversationHistory);
+}
+
+private async Task ProcessUserMessage(string userInput, List<Message> history)
+{
+    _logger.LogInformation("User: {Input}", userInput);
+    history.Add(new Message { Role = "user", Content = userInput });
+
+    var request = new ChatCompletionRequest
+    {
+        Model = "nousresearch/nous-hermes-2-mixtral-8x7b-dpo",
+        Messages = history, // Pass the updated history
+        MaxTokens = 150
+    };
+
+    try
+    {
+        var response = await _chatService.CreateChatCompletionAsync(request);
+        var assistantResponse = response.Choices?.FirstOrDefault()?.Message;
+
+        if (assistantResponse != null)
+        {
+            _logger.LogInformation("Assistant: {Content}", assistantResponse.Content);
+            history.Add(assistantResponse); // Add assistant's response to history
+            LogUsage(response.Usage);
+        }
+        else
+        {
+            _logger.LogWarning("No response from assistant.");
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error during conversation turn");
+    }
+}
 ```
 
-### Handling ChatCompletionResponse
-
-Process responses using the [`ChatCompletionResponse`](../../OpenRouter/Models/Responses/ChatCompletionResponse.cs:1) model:
-
-<!-- C# Code Example: Processing chat completion response with choices, usage, and metadata -->
-
-## Fluent Builder Pattern
-
-### IChatRequestBuilder Interface Overview
-
-The [`IChatRequestBuilder`](../../OpenRouter/Services/Chat/IChatRequestBuilder.cs:7) interface provides a fluent, chainable API for constructing chat requests:
+## Using `ChatRequestBuilder`
+The SDK includes a fluent [`IChatRequestBuilder`](../../OpenRouter/Services/Chat/IChatRequestBuilder.cs:1) to help construct `ChatCompletionRequest` objects in a more readable way.
 
 ```csharp
-var response = await client.Chat.CreateRequest()
-    .WithModel("anthropic/claude-3-haiku")
-    .WithUserMessage("Hello, world!")
-    .ExecuteAsync();
-```
-
-### Core Builder Methods
-
-#### WithModel()
-
-The [`WithModel()`](../../OpenRouter/Services/Chat/IChatRequestBuilder.cs:9) method specifies which language model to use:
-
-<!-- C# Code Example: Model selection with different providers -->
-
-#### WithMessages()
-
-The [`WithMessages()`](../../OpenRouter/Services/Chat/IChatRequestBuilder.cs:10) method accepts an array of messages for complex conversations:
-
-<!-- C# Code Example: Multi-turn conversation setup -->
-
-### Message Helper Methods
-
-#### WithSystemMessage()
-
-The [`WithSystemMessage()`](../../OpenRouter/Services/Chat/IChatRequestBuilder.cs:11) method sets the system prompt:
-
-```csharp
-builder.WithSystemMessage("You are a helpful assistant specialized in programming.");
-```
-
-#### WithUserMessage()
-
-The [`WithUserMessage()`](../../OpenRouter/Services/Chat/IChatRequestBuilder.cs:12) method adds user messages:
-
-```csharp
-builder.WithUserMessage("Explain dependency injection in .NET");
-```
-
-#### WithAssistantMessage()
-
-The [`WithAssistantMessage()`](../../OpenRouter/Services/Chat/IChatRequestBuilder.cs:14) method adds assistant responses for conversation context:
-
-<!-- C# Code Example: Building conversation history with assistant messages -->
-
-### Chain Building and Execution
-
-Build and execute requests in a single fluent chain using [`ExecuteAsync()`](../../OpenRouter/Services/Chat/IChatRequestBuilder.cs:42):
-
-```csharp
-var response = await client.Chat.CreateRequest()
-    .WithModel("anthropic/claude-3-haiku")
-    .WithSystemMessage("You are a coding assistant")
-    .WithUserMessage("Write a hello world in C#")
+var request = _chatService.CreateChatCompletionRequestBuilder()
+    .WithModel("openai/gpt-4o")
+    .AddSystemMessage("You are a travel planner.")
+    .AddUserMessage("Suggest a 3-day itinerary for Paris.")
+    .WithMaxTokens(500)
     .WithTemperature(0.7)
-    .WithMaxTokens(150)
-    .ExecuteAsync();
+    // .WithTools(myToolsList) // If using tools
+    .Build();
+
+// var response = await _chatService.CreateChatCompletionAsync(request);
 ```
 
-## Message Types and Content
+## Key Parameters in `ChatCompletionRequest`
 
-### Message Model Structure
+*   `Model` (string, required): The ID of the model to use.
+*   `Messages` (List<`Message`>, required): The conversation history.
+*   `MaxTokens` (int?): The maximum number of tokens to generate in the chat completion.
+*   `Temperature` (double?): Controls randomness. Lower values (~0.2) make output more deterministic, higher values (~1.0) make it more random.
+*   `TopP` (double?): Nucleus sampling. Consider alternatives like temperature.
+*   `Stream` (bool?): Set to `true` for streaming (handled by `StreamChatCompletionAsync`).
+*   `Stop` (string or List<string>?): Sequences where the API will stop generating further tokens.
+*   `PresencePenalty`, `FrequencyPenalty` (double?): Penalize new tokens based on their existing presence or frequency.
+*   `Tools` (List<[`Tool`](../../OpenRouter/Models/Common/Tool.cs:1)>?): A list of tools the model may call. See [Tool Use / Function Calling](#) (future section or OpenRouter docs).
+*   `ToolChoice` (object?): Controls which tool the model is forced to call, or if any.
+*   `RouteConfig` (object?): For advanced routing or model-specific parameters if supported by OpenRouter's passthrough capabilities.
+*   `Transforms` (List<string>): Apply content transformations (e.g., "middle-out").
 
-The [`Message`](../../OpenRouter/Models/Common/Message.cs:1) model supports various content types and roles:
+Refer to the [`ChatCompletionRequest`](../../OpenRouter/Models/Requests/ChatCompletionRequest.cs:1) class and the official OpenRouter API documentation for a complete list and detailed explanations of all parameters. The [`OpenRouter.Examples`](../../OpenRouter.Examples/) project demonstrates usage of some of these, like custom parameters.
 
-<!-- C# Code Example: Message structure with role, content, and metadata -->
-
-### Text and Multimodal Content Support
-
-Support for text, images, and other content types:
-
-<!-- C# Code Example: Multimodal message with text and image content -->
-
-### Message Roles and Formatting
-
-Proper message role usage for optimal model performance:
-
-<!-- C# Code Example: Conversation with system, user, and assistant roles -->
-
-## Model Parameters
-
-### Temperature
-
-Control response randomness with temperature settings:
-
-```csharp
-builder.WithTemperature(0.7); // Balanced creativity
-builder.WithTemperature(0.0); // Deterministic
-builder.WithTemperature(1.0); // Highly creative
-```
-
-### Max Tokens
-
-Limit response length:
-
-```csharp
-builder.WithMaxTokens(150);
-```
-
-### Top-p
-
-Nucleus sampling parameter:
-
-```csharp
-builder.WithTopP(0.9);
-```
-
-### Top-k
-
-Top-k sampling parameter:
-
-```csharp
-builder.WithTopK(40);
-```
-
-### Penalties
-
-Control repetition and creativity:
-
-```csharp
-builder.WithFrequencyPenalty(0.5);
-builder.WithPresencePenalty(0.6);
-builder.WithRepetitionPenalty(1.1);
-```
-
-## Code Examples
-
-### Complete Request/Response Scenarios
-
-<!-- C# Code Example: Complete chat completion workflow -->
-
-<!-- C# Code Example: Error handling and retry logic -->
-
-<!-- C# Code Example: Conversation management with message history -->
-
-<!-- C# Code Example: Advanced parameter configuration -->
+## Next Steps
+*   [Managing Models](model-management.md)
+*   [Authentication](authentication.md)
+*   [Error Handling](error-handling.md)

@@ -1,270 +1,171 @@
-# Getting Started with OpenRouter .NET
+# Getting Started with OpenRouter.NET SDK
 
-This guide will walk you through installing, configuring, and making your first requests with the OpenRouter .NET library.
-
-## Prerequisites
-
-- **.NET 8.0 or later** - The library targets .NET 8.0+ for optimal performance and modern language features
-- **OpenRouter API Key** - [Sign up at OpenRouter](https://openrouter.ai) to get your API key
+This guide will walk you through the initial steps to get the OpenRouter.NET SDK up and running in your project.
 
 ## Installation
 
-### Clone the Repository
+The OpenRouter.NET SDK is available as a NuGet package. You can install it using your preferred method:
 
-```bash
-git clone https://github.com/xyOz-dev/LogiQ.OpenRouter.git
+**Package Manager Console:**
+```powershell
+Install-Package OpenRouter.NET
 ```
 
-### Add Project Reference
+**dotnet CLI:**
+```bash
+dotnet add package OpenRouter.NET
+```
 
-Add the project reference to your .csproj file:
-
+**PackageReference in .csproj:**
 ```xml
-<ProjectReference Include="path/to/OpenRouter/OpenRouter.csproj" />
+<PackageReference Include="OpenRouter.NET" Version="1.0.0" /> 
 ```
+*(Ensure you use the latest version; check NuGet.org for the most up-to-date version number.)*
 
-### Using Visual Studio
+## Configuration
 
-1. Right-click on your solution in Solution Explorer
-2. Select "Add" > "Existing Project..."
-3. Navigate to and select the OpenRouter.csproj file
-4. Right-click on your project and select "Add" > "Project Reference..."
-5. Check the OpenRouter project and click "OK"
+To use the SDK, you'll primarily need an OpenRouter API key. You can obtain one from your [OpenRouter Dashboard](https://openrouter.ai/keys).
 
-## Basic Setup
+The API key and other settings can be configured in several ways:
 
-### Creating an OpenRouterClient Instance
+### 1. Using `appsettings.json` (Recommended for ASP.NET Core & Generic Host)
 
-The simplest way to get started is by creating an [`OpenRouterClient`](OpenRouter/Core/OpenRouterClient.cs:1) instance directly:
+If you're using the `Microsoft.Extensions.Hosting` pattern (common in ASP.NET Core applications or console apps using the Generic Host), you can configure the SDK via `appsettings.json`.
 
-```csharp
-using OpenRouter.Core;
-
-// Basic client with API key
-var client = new OpenRouterClient("YOUR_API_KEY");
-
-// Client with custom configuration
-var client = new OpenRouterClient("YOUR_API_KEY", options =>
-{
-    options.BaseUrl = "https://openrouter.ai/api/v1";
-    options.Timeout = TimeSpan.FromSeconds(30);
-    options.EnableRetry = true;
-    options.MaxRetryAttempts = 3;
-});
-```
-
-### API Key Configuration
-
-#### Environment Variable (Recommended)
-
-Store your API key in an environment variable for security:
-
-```bash
-# Windows (Command Prompt)
-set OPENROUTER_API_KEY=your_api_key_here
-
-# Windows (PowerShell)
-$env:OPENROUTER_API_KEY="your_api_key_here"
-
-# macOS/Linux
-export OPENROUTER_API_KEY="your_api_key_here"
-```
-
-```csharp
-var apiKey = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY")
-    ?? throw new InvalidOperationException("OPENROUTER_API_KEY not found");
-
-var client = new OpenRouterClient(apiKey);
-```
-
-#### Configuration File
-
-Use `appsettings.json` for ASP.NET Core applications:
-
+**Example `appsettings.json`:**
 ```json
 {
   "OpenRouter": {
-    "ApiKey": "your_api_key_here",
-    "BaseUrl": "https://openrouter.ai/api/v1",
-    "Timeout": "00:00:30",
-    "EnableRetry": true,
-    "MaxRetryAttempts": 3
+    "ApiKey": "your_openrouter_api_key_here", // Replace with your actual key
+    "BaseUrl": "https://openrouter.ai/api/v1", // Default, can be overridden
+    "HttpReferer": "https://your-site-or-app.com", // Recommended
+    "XTitle": "Your App Name" // Recommended
   }
 }
 ```
 
-### Basic OpenRouterOptions Setup
-
-Configure [`OpenRouterOptions`](OpenRouter/Core/OpenRouterOptions.cs:5) for advanced scenarios:
+Then, register the `OpenRouterClient` in your `Startup.cs` or `Program.cs`:
 
 ```csharp
-var options = new OpenRouterOptions
-{
-    ApiKey = "YOUR_API_KEY",
-    BaseUrl = "https://openrouter.ai/api/v1",
-    Timeout = TimeSpan.FromSeconds(30),
-    RequestTimeout = TimeSpan.FromSeconds(120),
-    MaxRetryAttempts = 3,
-    RetryDelay = TimeSpan.FromSeconds(1),
-    EnableRetry = true,
-    EnableLogging = true,
-    LogLevel = LogLevel.Information,
-    ValidateApiKey = true,
-    ThrowOnApiErrors = true
-};
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using OpenRouter.Extensions; // Add this using directive
 
-var client = new OpenRouterClient(
-    new OpenRouterHttpClient(new HttpClient(), 
-        new BearerTokenProvider(options.ApiKey, options.ValidateApiKey), 
-        options, null), 
-    options);
+public static IHostBuilder CreateHostBuilder(string[] args) =>
+    Host.CreateDefaultBuilder(args)
+        .ConfigureServices((hostContext, services) =>
+        {
+            // ... other services
+
+            // Add OpenRouter services
+            services.AddOpenRouter(options =>
+            {
+                // API Key can be sourced from IConfiguration
+                options.ApiKey = hostContext.Configuration["OpenRouter:ApiKey"];
+                
+                // Or directly if not using IConfiguration for the key
+                // options.ApiKey = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY") ?? "your_fallback_key";
+
+                options.BaseUrl = hostContext.Configuration["OpenRouter:BaseUrl"];
+                options.HttpReferer = hostContext.Configuration["OpenRouter:HttpReferer"];
+                options.XTitle = hostContext.Configuration["OpenRouter:XTitle"];
+                
+                // You can also set default headers
+                var userAgent = hostContext.Configuration["OpenRouter:UserAgent"] ?? "MyApp/1.0.0";
+                options.DefaultHeaders["User-Agent"] = userAgent;
+            });
+
+            // Or more simply by binding from configuration
+            // services.AddOpenRouter(hostContext.Configuration.GetSection("OpenRouter"));
+
+            // ... other services
+        });
 ```
 
-## Your First Request
+See the [`OpenRouter.Examples/Program.cs`](../OpenRouter.Examples/Program.cs:231) for a working example of this setup.
 
-### Simple Chat Completion
+### 2. Programmatic Configuration
 
-Create a basic chat completion using the [`IChatService`](OpenRouter/Core/IOpenRouterClient.cs:11):
+You can configure the `OpenRouterOptions` directly in code when adding the services or when instantiating the client manually (though DI is preferred).
+
+```csharp
+services.AddOpenRouter(options =>
+{
+    options.ApiKey = "your_openrouter_api_key_here";
+    options.HttpReferer = "https://your-site-or-app.com";
+    options.XTitle = "Your App Name";
+    // options.BaseUrl = "https://custom.openrouter.proxy/api/v1"; // If needed
+});
+```
+
+### 3. Environment Variables
+
+The API key can also be provided via an environment variable, typically `OPENROUTER_API_KEY`. The example `Program.cs` shows how to read this:
+
+```csharp
+// From OpenRouter.Examples/Program.cs
+var apiKey = context.Configuration["OpenRouter:ApiKey"] ?? 
+           Environment.GetEnvironmentVariable("OPENROUTER_API_KEY");
+
+services.AddOpenRouter(options =>
+{
+    options.ApiKey = apiKey;
+    // ... other options
+});
+```
+
+
+## Basic Usage (with Dependency Injection)
+
+Once configured, you can inject `IOpenRouterClient` or specific services like `IChatService` into your classes.
 
 ```csharp
 using OpenRouter.Core;
+using OpenRouter.Services.Chat;
+using OpenRouter.Models.Requests;
+using OpenRouter.Models.Common;
 
-var client = new OpenRouterClient("YOUR_API_KEY");
-
-try
-{
-    var response = await client.Chat
-        .CreateChatCompletion("gpt-3.5-turbo")
-        .AddUserMessage("What is the capital of France?")
-        .SendAsync();
-
-    Console.WriteLine($"Response: {response.FirstChoiceContent}");
-    Console.WriteLine($"Model: {response.Model}");
-    Console.WriteLine($"Usage: {response.Usage?.TotalTokens} tokens");
-}
-catch (OpenRouterException ex)
-{
-    Console.WriteLine($"API Error: {ex.Message}");
-}
-```
-
-### Response Handling with ChatCompletionResponse
-
-Work with the [`ChatCompletionResponse`](OpenRouter/Models/Responses/ChatCompletionResponse.cs:6) object:
-
-```csharp
-var response = await client.Chat
-    .CreateChatCompletion("gpt-3.5-turbo")
-    .AddUserMessage("Tell me a joke")
-    .SendAsync();
-
-// Access response properties
-Console.WriteLine($"Response ID: {response.Id}");
-Console.WriteLine($"Created: {response.CreatedAt}");
-Console.WriteLine($"Model: {response.Model}");
-
-// Access choices
-foreach (var choice in response.Choices)
-{
-    Console.WriteLine($"Choice {choice.Index}: {choice.Message?.Content}");
-    Console.WriteLine($"Finish Reason: {choice.FinishReason}");
-    
-    // Check completion status
-    if (choice.IsCompleted)
-    {
-        Console.WriteLine("Response completed successfully");
-    }
-}
-
-// Usage information
-if (response.Usage != null)
-{
-    Console.WriteLine($"Prompt tokens: {response.Usage.PromptTokens}");
-    Console.WriteLine($"Completion tokens: {response.Usage.CompletionTokens}");
-    Console.WriteLine($"Total tokens: {response.Usage.TotalTokens}");
-}
-```
-
-## Dependency Injection Setup
-
-For ASP.NET Core applications, use the built-in DI container integration.
-
-### Basic Registration
-
-Use [`ServiceCollectionExtensions.AddOpenRouter()`](OpenRouter/Extensions/ServiceCollectionExtensions.cs:18) in `Program.cs`:
-
-```csharp
-using OpenRouter.Extensions;
-
-var builder = WebApplication.CreateBuilder(args);
-
-// Basic registration with API key
-builder.Services.AddOpenRouter("YOUR_API_KEY");
-
-// Or with configuration
-builder.Services.AddOpenRouter(options =>
-{
-    options.ApiKey = builder.Configuration["OpenRouter:ApiKey"]!;
-    options.BaseUrl = "https://openrouter.ai/api/v1";
-    options.EnableRetry = true;
-    options.MaxRetryAttempts = 3;
-});
-
-var app = builder.Build();
-```
-
-### Configuration from appsettings.json
-
-```csharp
-// Program.cs
-builder.Services.AddOpenRouter(options =>
-    builder.Configuration.GetSection("OpenRouter").Bind(options));
-```
-
-```json
-// appsettings.json
-{
-  "OpenRouter": {
-    "ApiKey": "your_api_key_here",
-    "BaseUrl": "https://openrouter.ai/api/v1",
-    "Timeout": "00:00:30",
-    "EnableRetry": true,
-    "MaxRetryAttempts": 3
-  }
-}
-```
-
-### Controller/Service Injection Examples
-
-Inject the [`IOpenRouterClient`](OpenRouter/Core/IOpenRouterClient.cs:9) into your controllers or services:
-
-```csharp
-[ApiController]
-[Route("api/[controller]")]
-public class ChatController : ControllerBase
+public class MyService
 {
     private readonly IOpenRouterClient _openRouterClient;
+    private readonly IChatService _chatService;
+    private readonly ILogger<MyService> _logger;
 
-    public ChatController(IOpenRouterClient openRouterClient)
+    public MyService(IOpenRouterClient openRouterClient, IChatService chatService, ILogger<MyService> logger)
     {
         _openRouterClient = openRouterClient;
+        _chatService = chatService;
+        _logger = logger;
     }
 
-    [HttpPost("complete")]
-    public async Task<IActionResult> Complete([FromBody] string prompt)
+    public async Task SendSimpleChatMessageAsync()
     {
+        _logger.LogInformation("Attempting to send a chat message...");
         try
         {
-            var response = await _openRouterClient.Chat
-                .CreateChatCompletion("gpt-3.5-turbo")
-                .AddUserMessage(prompt)
-                .SendAsync();
+            var request = new ChatCompletionRequest
+            {
+                Model = "openai/gpt-3.5-turbo", // Choose a model
+                Messages = new List<Message>
+                {
+                    new Message { Role = "user", Content = "Hello, OpenRouter!" }
+                }
+            };
 
-            return Ok(new { content = response.FirstChoiceContent });
+            var response = await _chatService.CreateChatCompletionAsync(request);
+
+            if (response.Choices != null && response.Choices.Any())
+            {
+                _logger.LogInformation("Received response: {Content}", response.Choices.First().Message?.Content);
+            }
+            else
+            {
+                _logger.LogWarning("No choices returned in the response.");
+            }
         }
-        catch (OpenRouterException ex)
+        catch (Exception ex)
         {
-            return BadRequest(new { error = ex.Message });
+            _logger.LogError(ex, "Error sending chat message");
         }
     }
 }
@@ -272,17 +173,9 @@ public class ChatController : ControllerBase
 
 ## Next Steps
 
-Now that you have the basics working, explore these topics:
+With the SDK installed and configured, you can explore:
+*   [Core Concepts](core-concepts/client-and-options.md) to understand the client, options, and services.
+*   [Key Functionalities](features/chat-completions.md) like Chat Completions, Model Management, etc.
+*   The `OpenRouter.Examples` project for more detailed use cases.
 
-- **[Authentication Methods](authentication.md)** - Learn about different authentication options
-- **[Dependency Injection](dependency-injection.md)** - Advanced DI scenarios and testing
-- **[Chat Features](features/chat.md)** - Explore the full chat completion API
-- **[Model Management](features/models.md)** - Discover and work with different AI models
-- **[Error Handling](features/error-handling.md)** - Robust error handling patterns
-- **[Examples](examples/)** - Real-world usage examples
-
-<!-- C# Code Example: Advanced chat completion with system message and function calling -->
-
----
-
-**Next**: [Authentication Methods →](authentication.md)
+Make sure to check your API key is correctly set and is not the placeholder from `appsettings.json` (e.g., `sk-or-v1-67b...`). See [`OpenRouter.Examples/Program.cs`](../OpenRouter.Examples/Program.cs:109) for configuration validation.
